@@ -8,6 +8,12 @@ import {
 } from "discord.js";
 import express from "express";
 import cors from "cors";
+import levelup from "levelup";
+import leveldown from "leveldown";
+import encode from "encoding-down";
+import crypto from "crypto";
+
+const db = levelup(encode(leveldown("./secretsdb")));
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -39,5 +45,13 @@ app.post("/card", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`SparkDouble API listening on port ${port}`);
 });
+
+async function main() {
+  const secret = crypto.randomBytes(24).toString("hex");
+  await db.put("955723237831106560", secret);
+  await db.get("955723237831106560");
+}
+
+main();
