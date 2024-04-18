@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
+  ActivityType,
   Client,
   Collection,
   EmbedBuilder,
@@ -23,7 +24,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const db = levelup(encode(leveldown("./secretsdb")));
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds],
+  presence: {
+    activities: [
+      { name: "🌐 Sharing your cards :)", type: ActivityType.Custom },
+    ],
+    status: "online",
+  },
+});
 
 client.commands = new Collection();
 
