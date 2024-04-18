@@ -1,9 +1,11 @@
 {
   "extends": "@tsconfig/node21/tsconfig.json",
   "compilerOptions": {
+    "module": "es2022",
+    "moduleResolution": "Node",
     "strictNullChecks": true,
     "resolveJsonModule": true,
-    "outDir": "dist"
+    "outDir": "dist",
   },
   "include": ["src"],
   "exclude": ["node_modules"]
