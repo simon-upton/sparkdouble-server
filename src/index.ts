@@ -12,6 +12,8 @@ import {
   GatewayIntentBits,
   TextChannel,
 } from "discord.js";
+import { putWithReverse } from "./utils/dbutils.js";
+import { genSecret } from "./utils/secret.js";
 import express from "express";
 import cors from "cors";
 
@@ -88,6 +90,9 @@ client.on("ready", (c) => {
 });
 
 client.on("guildCreate", (g) => {
+  const guildId = g.id;
+  putWithReverse(guildId, { secret: genSecret(), channelId: "" });
+
   // TODO: replace "https://example.com", "https://discord.com", and "https://github.com/simon-upton" placeholders with actual links
   const serverJoinEmbed = new EmbedBuilder()
     .setTitle(":wave: Hi There!")
