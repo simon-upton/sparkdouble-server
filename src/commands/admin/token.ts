@@ -7,7 +7,8 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import db from "../../utils/dbutils.js";
+import { resetSecret } from "../../utils/dbutils.js";
+import { getByServerId } from "../../utils/dbutils.js";
 
 export const command = {
   data: new SlashCommandBuilder()
@@ -33,13 +34,24 @@ export const command = {
     .setDMPermission(false),
   async execute(interaction: any) {
     if (interaction.options.getSubcommand() === "show") {
-      const secret = JSON.parse(await db.get(interaction.guild.id)).secret;
+      try {
+        const secret = (await getByServerId(interaction.guild.id)).secret;
 
-      const showTokenEmbed = new EmbedBuilder()
-        .setColor("Blurple")
-        .setTitle(":coin: Your server's secret token:")
-        .setDescription(`\`${secret}\``);
-      await interaction.reply({ embeds: [showTokenEmbed], ephemeral: true });
+        const showTokenEmbed = new EmbedBuilder()
+          .setColor("Blurple")
+          .setTitle(":coin: Your server's secret token:")
+          .setDescription(`\`${secret}\``);
+        await interaction.reply({ embeds: [showTokenEmbed], ephemeral: true });
+      } catch (err) {
+        console.error("Error fetching secret:", err);
+        const failEmbed = new EmbedBuilder()
+          .setColor("Red")
+          .setTitle(":warning: Something has gone wrong")
+          .setDescription(
+            "Your server's secret appears to be inaccessible. Please use `/token reset` to reset it."
+          );
+        await interaction.reply({ embeds: [failEmbed], ephemeral: true });
+      }
     } else if (interaction.options.getSubcommand() === "reset") {
       const confirm = new ButtonBuilder()
         .setCustomId("confirm")
@@ -75,17 +87,32 @@ export const command = {
         });
 
         if (confirmation.customId === "confirm") {
-          // TODO: reset token for server here
+          const guildId = interaction.guild.id;
+          try {
+            await resetSecret(guildId);
+            const successEmbed = new EmbedBuilder()
+              .setColor("Green")
+              .setTitle(":recycle: Secret token reset.")
+              .setDescription("Use `/token show` to view your new token.");
 
-          const successEmbed = new EmbedBuilder()
-            .setColor("Green")
-            .setTitle(":recycle: Secret token reset.")
-            .setDescription("Use `/token show` to view your new token.");
-
-          await confirmation.update({
-            embeds: [successEmbed],
-            components: [],
-          });
+            await confirmation.update({
+              embeds: [successEmbed],
+              components: [],
+            });
+          } catch (err) {
+            console.error("Error:", err);
+            const failEmbed = new EmbedBuilder()
+              .setColor("Red")
+              .setTitle(":warning: Something has gone wrong")
+              .setDescription(
+                "Your token has been reset, but you must use `/setchannel` to target a channel once again (it can be the same channel)."
+              );
+            await resetSecret(guildId, true);
+            await confirmation.update({
+              embeds: [failEmbed],
+              components: [],
+            });
+          }
         } else if (confirmation.customId === "cancel") {
           const cancelEmbed = new EmbedBuilder()
             .setColor("LightGrey")
