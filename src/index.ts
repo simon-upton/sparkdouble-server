@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
   ActivityType,
+  ChannelType,
   Client,
   Collection,
   EmbedBuilder,
@@ -13,16 +14,10 @@ import {
 } from "discord.js";
 import express from "express";
 import cors from "cors";
-import levelup from "levelup";
-import leveldown from "leveldown";
-import encode from "encoding-down";
-import crypto from "crypto";
 
 // TODO: reorganize/refactor file contents for clarity
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const db = levelup(encode(leveldown("./secretsdb")));
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -87,8 +82,100 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
+// TODO: reorganize events into separate file structure/dir
 client.on("ready", (c) => {
   console.log(`${c.user.username} is online`);
+});
+
+client.on("guildCreate", (g) => {
+  // TODO: replace "https://example.com", "https://discord.com", and "https://github.com/simon-upton" placeholders with actual links
+  const serverJoinEmbed = new EmbedBuilder()
+    .setTitle(":wave: Hi There!")
+    .setDescription(
+      "Thank you for adding me to your server. There's three quick steps before I'm good to go:"
+    )
+    .setFields(
+      {
+        name: ":one: Set my channel:",
+        value:
+          "Before I can start relaying your Magic cards, you must point me at a channel using `/setchannel`",
+      },
+      {
+        name: ":two: Get your secret token:",
+        value:
+          "A secret token has been generated for your server. Users must input this token to the [SparkDouble browser extension](https://example.com) in order to securely share cards to your Discord server.",
+      },
+      {
+        name: ":three: Share your token:",
+        value:
+          "Members with `Administrator` or `Manage Server` permissions can use `/token show` to secretly view the token, then share it with trusted server members.",
+      },
+      {
+        name: "\u200B",
+        value:
+          "~~------------------------------------------------------------------------------------~~",
+      },
+      {
+        name: ":loudspeaker: Official Discord Server:",
+        value: "[SparkDouble Discord Server](https://discord.com)",
+        inline: true,
+      },
+      {
+        name: ":computer: GitHub Repository:",
+        value: "[SparkDouble Repository](https://github.com/simon-upton)",
+        inline: true,
+      }
+    )
+    .setColor("Green");
+
+  try {
+    const channel = g.channels.cache.find((channel) => {
+      if (!client.user) {
+        console.error("client is undefined");
+        return false;
+      }
+
+      const bot = g.members.cache.get(client.user.id);
+
+      if (!bot) {
+        console.error("bot is undefined");
+        return false;
+      }
+
+      const channelPermissions = channel.permissionsFor(bot);
+      return (
+        channel.type === ChannelType.GuildText &&
+        channelPermissions.has("SendMessages") &&
+        channelPermissions.has("ViewChannel")
+      );
+    }) as TextChannel | undefined;
+
+    // if there is no channel to send a message within, DM admins of the server with setup instructions
+    if (channel) {
+      channel.send({ embeds: [serverJoinEmbed] });
+    } else {
+      const failedIntroductionEmbed = new EmbedBuilder()
+        .setTitle(":warning: Couldn't send introduction message")
+        .setDescription(
+          `Hi! I couldn't find a channel to send my introduction message in, so I'm messaging all admins from the ${g.name} server to avoid setup confusion :)`
+        )
+        .setColor("Yellow");
+
+      const admins = g.members.cache.filter((member) => {
+        return (
+          member.permissions.has("Administrator") ||
+          member.permissions.has("ManageGuild")
+        );
+      });
+
+      for (const admin in admins) {
+        client.users.send(admin, { embeds: [failedIntroductionEmbed] });
+        client.users.send(admin, { embeds: [serverJoinEmbed] });
+      }
+    }
+  } catch (err) {
+    console.error("Error while sending message on guild join:", err);
+  }
 });
 
 client.login(process.env.BOT_TOKEN);
@@ -117,11 +204,3 @@ app.post("/card", async (req, res) => {
 app.listen(port, () => {
   console.log(`SparkDouble API listening on port ${port}`);
 });
-
-async function main() {
-  const secret = crypto.randomBytes(24).toString("hex");
-  await db.put("955723237831106560", secret);
-  await db.get("955723237831106560");
-}
-
-main();
