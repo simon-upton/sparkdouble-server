@@ -7,6 +7,7 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import db from "../../utils/dbutils.js";
 
 export const command = {
   data: new SlashCommandBuilder()
@@ -32,12 +33,12 @@ export const command = {
     .setDMPermission(false),
   async execute(interaction: any) {
     if (interaction.options.getSubcommand() === "show") {
-      // TODO: retrieve server's secret token from DB
+      const secret = JSON.parse(await db.get(interaction.guild.id)).secret;
 
       const showTokenEmbed = new EmbedBuilder()
         .setColor("Blurple")
         .setTitle(":coin: Your server's secret token:")
-        .setDescription(`\`serverToken\``);
+        .setDescription(`\`${secret}\``);
       await interaction.reply({ embeds: [showTokenEmbed], ephemeral: true });
     } else if (interaction.options.getSubcommand() === "reset") {
       const confirm = new ButtonBuilder()
