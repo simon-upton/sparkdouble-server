@@ -70,6 +70,13 @@ export const setServerChannel = async function (
   );
 };
 
+export const getServerChannel = async function (
+  serverId: string
+): Promise<string> {
+  const data = await getByServerId(serverId);
+  return data.channelId;
+};
+
 // used for when something goes wrong and the reverse index (secret, serverId) has to be manually found and removed
 export const cleanupReverseIndex = function (serverId: string) {
   let foundKey: string[] = [];
