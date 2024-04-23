@@ -86,7 +86,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 // TODO: reorganize events into separate file structure/dir
 client.on("ready", (c) => {
-  console.log(`${c.user.username} is online`);
+  console.log(
+    `${c.user.username} Bot v${process.env.npm_package_version} is online`
+  );
 });
 
 client.on("guildCreate", (g) => {
