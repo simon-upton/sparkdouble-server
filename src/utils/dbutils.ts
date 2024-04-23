@@ -59,6 +59,17 @@ export const resetSecret = async function (serverId: string, force?: boolean) {
   }
 };
 
+export const setServerChannel = async function (
+  serverId: string,
+  newChannelId: string
+) {
+  const data = await getByServerId(serverId);
+  await db.put(
+    serverId,
+    JSON.stringify({ secret: data.secret, channelId: newChannelId })
+  );
+};
+
 // used for when something goes wrong and the reverse index (secret, serverId) has to be manually found and removed
 export const cleanupReverseIndex = function (serverId: string) {
   let foundKey: string[] = [];
