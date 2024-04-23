@@ -39,9 +39,9 @@ export const command = {
     }
     const targetChannel = channelOption.channel;
 
-    const setChannelFailEmbed = new EmbedBuilder().setTitle(
-      ":x: Could not set channel"
-    );
+    const setChannelFailEmbed = new EmbedBuilder()
+      .setTitle(":x: Could not set channel")
+      .setColor("Red");
 
     // if interaction is created from an odd circumstance other than slash command
     if (!targetChannel) {
