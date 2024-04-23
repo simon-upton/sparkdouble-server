@@ -18,6 +18,7 @@ import express from "express";
 import cors from "cors";
 
 // TODO: reorganize/refactor file contents for clarity
+// TODO: move all embeds into separate utility file to clean up project
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
