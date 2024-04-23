@@ -38,7 +38,7 @@ export const putWithReverse = async function (
   value: StorageValue
 ): Promise<void> {
   await db.put(key, JSON.stringify(value));
-  await db.put(value.secret, JSON.stringify({ key: key }));
+  await db.put(value.secret, key);
 };
 
 export const resetSecret = async function (serverId: string, force?: boolean) {
@@ -60,27 +60,28 @@ export const resetSecret = async function (serverId: string, force?: boolean) {
 };
 
 // used for when something goes wrong and the reverse index (secret, serverId) has to be manually found and removed
-function cleanupReverseIndex(serverId: string) {
-  let foundKey: string;
+export const cleanupReverseIndex = function (serverId: string) {
+  let foundKey: string[] = [];
   const readStream = db.createReadStream();
   readStream.on("data", (entry) => {
     if (entry.value === serverId) {
-      foundKey = entry.key;
+      foundKey.push(entry.key);
     }
   });
   readStream.on("end", () => {
-    if (foundKey) {
-      db.del(foundKey, (err) => {
+    if (foundKey.length === 0) return;
+    for (const key of foundKey) {
+      db.del(key, (err) => {
         err
           ? console.error("Error while deleting:", err)
-          : console.log("Successfully cleaned up reverse index:", foundKey);
+          : console.log("Successfully cleaned up reverse index:", key);
       });
     }
   });
   readStream.on("error", (err) => {
     console.error("Error while cleaning up reverse index:", err);
   });
-}
+};
 
 // used for debugging and looking over the KV database
 export const logDBDump = function (): void {
