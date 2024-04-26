@@ -25,11 +25,21 @@ export const getByServerId = async function (
 
 export const getBySecret = async function (
   secret: string
-): Promise<ReverseStorageValue> {
-  const serverId: string = await db.get(secret);
-  const { channelId } = JSON.parse(await db.get(serverId));
+): Promise<ReverseStorageValue | undefined> {
+  let finalValue;
+  try {
+    const serverId: string = await db.get(secret);
+    const { channelId } = JSON.parse(await db.get(serverId));
+    finalValue = { serverId, channelId };
+  } catch (err) {
+    if (err instanceof Error && err.name === "NotFoundError") {
+      finalValue = undefined;
+    } else {
+      console.error(err);
+    }
+  }
 
-  return { serverId, channelId };
+  return finalValue;
 };
 
 // places both a (serverId, {secret, channelId}) and a (secret, serverId) key/value pair into the db for reverse lookup by secret
