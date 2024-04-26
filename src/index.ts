@@ -12,7 +12,11 @@ import {
   GatewayIntentBits,
   TextChannel,
 } from "discord.js";
-import { cleanupReverseIndex, putWithReverse } from "./utils/dbutils.js";
+import {
+  cleanupReverseIndex,
+  getBySecret,
+  putWithReverse,
+} from "./utils/dbutils.js";
 import { genSecret } from "./utils/secret.js";
 import express from "express";
 import cors from "cors";
@@ -195,19 +199,32 @@ const port = 3000;
 app.use(cors(), express.json());
 
 app.post("/card", async (req, res) => {
-  // TODO: remove hardcoded IDs used in example
-  const channel = (await client.channels.cache.get(
-    "1229904974872313946"
+  const targetServerInfo = await getBySecret(req.body["secret"]);
+  res.setHeader("Content-Type", "application/json");
+  if (!targetServerInfo) {
+    res
+      .status(404)
+      .send(
+        JSON.stringify({ msg: "Given secret not associated with any server." })
+      );
+    return;
+  }
+  res.status(200).send(JSON.stringify({ msg: "Success!" }));
+
+  // must be TextChannel, validated when user adds to db by setchannel command
+  const targetChannel = (await client.channels.cache.get(
+    targetServerInfo.channelId
   )) as TextChannel;
-  const hueId = "214496939226431489";
-  const user = await client.users.fetch(hueId).catch(() => null);
-  const username: string = user?.username as string;
-  const avatarURL: string = user?.avatarURL() as string;
-  const exampleEmbed = new EmbedBuilder()
+  const user = await client.users.fetch(req.body["userId"]);
+  const cardEmbed = new EmbedBuilder()
     .setImage(req.body["imgUrl"])
-    .setFooter({ text: username, iconURL: avatarURL })
+    .setFooter({
+      text: user.username ?? "Unkown",
+      iconURL:
+        user.avatarURL() ?? "https://cdn.discordapp.com/embed/avatars/0.png",
+    })
     .setTimestamp();
-  await channel.send({ embeds: [exampleEmbed] });
+  await targetChannel!.send({ embeds: [cardEmbed] });
 });
 
 app.listen(port, () => {
