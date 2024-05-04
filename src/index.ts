@@ -1,4 +1,3 @@
-import "dotenv/config";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -25,6 +24,8 @@ import cors from "cors";
 // TODO: move all embeds into separate utility file to clean up project
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const BOT_TOKEN = fs.readFileSync("/run/secrets/BOT_TOKEN", "utf-8");
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -191,10 +192,10 @@ client.on("guildCreate", (g) => {
   }
 });
 
-client.login(process.env.BOT_TOKEN);
+client.login(BOT_TOKEN);
 
 const app = express();
-const port = 3000;
+const PORT = 25565;
 
 app.use(cors(), express.json());
 
@@ -227,6 +228,6 @@ app.post("/card", async (req, res) => {
   await targetChannel!.send({ embeds: [cardEmbed] });
 });
 
-app.listen(port, () => {
-  console.log(`SparkDouble API listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`SparkDouble API listening on port ${PORT}`);
 });
