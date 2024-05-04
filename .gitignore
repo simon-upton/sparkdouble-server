@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 secretsdb/
+BOT_TOKEN.txt
+BOT_TOKEN_DEV.txt
