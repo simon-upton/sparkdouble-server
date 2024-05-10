@@ -136,7 +136,8 @@ client.on("guildCreate", (g) => {
       },
       {
         name: ":computer: GitHub Repository:",
-        value: "[SparkDouble Repository](https://github.com/simon-upton)",
+        value:
+          "[SparkDouble Repository](https://github.com/simon-upton/sparkdouble-server)",
         inline: true,
       }
     )
