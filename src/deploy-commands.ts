@@ -43,11 +43,9 @@ const rest = new REST().setToken(token);
 
     // Refresh all commands
     // TODO: create interface for rest API response instead of 'any'
-    const data: any = await rest.put(
-      // TODO: replace with Routes.applicationCommands(clientId) on release
-      Routes.applicationGuildCommands(clientId, guildId),
-      { body: commands }
-    );
+    const data: any = await rest.put(Routes.applicationCommands(clientId), {
+      body: commands,
+    });
 
     console.log(
       `Successfully reloaded ${data.length} application (/) commands.`
