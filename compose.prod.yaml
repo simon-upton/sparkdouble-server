@@ -1,0 +1,21 @@
+services:
+  server:
+    # try to find existing image
+    image: sparkdouble-server
+    # if not, try to build from local
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
+    secrets:
+      - BOT_TOKEN
+    volumes:
+      - secretsdb:/usr/src/app/secretsdb/
+    ports:
+      - 25565:25565
+    restart: unless-stopped
+secrets:
+  BOT_TOKEN:
+    file: ./BOT_TOKEN.txt
+volumes:
+  secretsdb:
