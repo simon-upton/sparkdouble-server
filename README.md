@@ -51,7 +51,7 @@
 ## About SparkDouble
 
 <div align="center">
-  <img src="https://i.ibb.co/n72JRZW/Sequence-01-3.gif" alt="SparkDouble Demo" height="40%" border="0">
+  <img src="https://i.ibb.co/vXSK3YH/Sequence01-3-downscaled66-optimized.gif" alt="Sequence01-3-downscaled66-optimized" border="0">
 </div>
 
 <!-- TODO: replace URLs with Chrome extension page and Discord bot invite link  -->
